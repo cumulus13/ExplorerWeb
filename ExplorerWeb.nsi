@@ -2,7 +2,7 @@
 ; Author: Hadi Cahyadi <cumulus13@gmail.com>
 
 !define APP_NAME "ExplorerWeb"
-!define APP_VERSION "1.0.3"
+!define APP_VERSION "1.0.4"
 !define APP_PUBLISHER "Hadi Cahyadi"
 !define APP_URL "https://github.com/cumulus13/ExplorerWeb"
 !define DOTNET_VERSION "8.0"
@@ -13,9 +13,6 @@
 !include "MUI2.nsh"
 !include "x64.nsh"
 !include "LogicLib.nsh"
-!include "FileFunc.nsh"
-!include "WordFunc.nsh"
-!include "StrFunc.nsh"
 
 ; General settings
 Name "${APP_NAME} ${APP_VERSION}"
@@ -63,67 +60,71 @@ FunctionEnd
 
 Function CheckDotNetRuntime
   DetailPrint "Checking for .NET ${DOTNET_VERSION} Runtime..."
-
-  StrCpy $DotNetInstalled "0"
-  StrCpy $3 0
-
+  
+  ; Simple check: just look for registry key existence
+  ClearErrors
   ${If} ${RunningX64}
-    StrCpy $1 "SOFTWARE\dotnet\Setup\InstalledVersions\x64\sharedfx\Microsoft.NETCore.App"
+    ReadRegStr $0 HKLM "SOFTWARE\dotnet\Setup\InstalledVersions\x64\sharedhost" "Version"
   ${Else}
-    StrCpy $1 "SOFTWARE\dotnet\Setup\InstalledVersions\x86\sharedfx\Microsoft.NETCore.App"
+    ReadRegStr $0 HKLM "SOFTWARE\dotnet\Setup\InstalledVersions\x86\sharedhost" "Version"
   ${EndIf}
-
-  loop:
+  
+  ${If} ${Errors}
+    ; Try alternative registry location
     ClearErrors
-    EnumRegKey $0 HKLM "$1" $3
+    EnumRegKey $0 HKLM "SOFTWARE\dotnet\Setup\InstalledVersions\x64\sharedfx\Microsoft.NETCore.App" 0
     ${If} ${Errors}
-      Goto done
-    ${EndIf}
-
-    DetailPrint "Found runtime version: $0"
-
-    StrCpy $2 $0 2
-    ${If} $2 == "8."
-      StrCpy $DotNetInstalled "1"
-      DetailPrint ".NET ${DOTNET_VERSION} Runtime found: $0"
-      Goto done
-    ${EndIf}
-
-    IntOp $3 $3 + 1
-    Goto loop
-
-  done:
-    ${If} $DotNetInstalled == "0"
       DetailPrint ".NET ${DOTNET_VERSION} Runtime not found"
+      StrCpy $DotNetInstalled "0"
+    ${Else}
+      DetailPrint ".NET Runtime found"
+      StrCpy $DotNetInstalled "1"
     ${EndIf}
+  ${Else}
+    DetailPrint ".NET Runtime found: $0"
+    StrCpy $DotNetInstalled "1"
+  ${EndIf}
 FunctionEnd
 
 Function DownloadAndInstallDotNet
   DetailPrint "Downloading .NET ${DOTNET_VERSION} Runtime..."
-
-  StrCpy $DotNetInstallerPath "$TEMP\dotnet-runtime-installer.exe"
-
-  NSISdl::download "$DownloadUrl" "$DotNetInstallerPath"
+  
+  ; Set temp path for installer
+  StrCpy $DotNetInstallerPath "$TEMP\dotnet-runtime-8.0.3-installer.exe"
+  
+  ; Download using NSISdl
+  NSISdl::download /TIMEOUT=30000 "$DownloadUrl" "$DotNetInstallerPath"
   Pop $R0
-
-  ${If} $R0 != "OK"
-    MessageBox MB_ICONEXCLAMATION|MB_OK "Download failed: $R0"
-    Abort
-  ${EndIf}
-
-  DetailPrint "Installing .NET Runtime silently..."
-  ExecWait '"$DotNetInstallerPath" /install /quiet /norestart' $0
-
-  ${If} $0 == 0
-    DetailPrint ".NET installed successfully"
-  ${ElseIf} $0 == 3010
-    DetailPrint ".NET installed (reboot required)"
+  
+  ${If} $R0 == "success"
+    DetailPrint "Download complete. Installing .NET Runtime..."
+    
+    ; Run installer with silent flags
+    DetailPrint "Running: $DotNetInstallerPath /install /quiet /norestart"
+    ExecWait '"$DotNetInstallerPath" /install /quiet /norestart' $0
+    
+    ${If} $0 == 0
+      DetailPrint ".NET Runtime installed successfully"
+      Delete "$DotNetInstallerPath"
+    ${ElseIf} $0 == 3010
+      DetailPrint ".NET Runtime installed (reboot required)"
+      Delete "$DotNetInstallerPath"
+    ${Else}
+      DetailPrint "Installation returned code: $0"
+      MessageBox MB_ICONEXCLAMATION|MB_OK ".NET Runtime installation failed (Error: $0).$\n$\nPlease install manually from:$\n$DownloadUrl"
+      Delete "$DotNetInstallerPath"
+      Abort
+    ${EndIf}
   ${Else}
-    MessageBox MB_ICONSTOP "Installation failed with code: $0"
+    DetailPrint "Download failed: $R0"
+    MessageBox MB_ICONEXCLAMATION|MB_YESNO "Failed to download .NET Runtime.$\n$\nWould you like to open the download page in your browser?" IDYES OpenBrowser IDNO SkipBrowser
+    
+    OpenBrowser:
+      ExecShell "open" "$DownloadUrl"
+    
+    SkipBrowser:
     Abort
   ${EndIf}
-
-  Delete "$DotNetInstallerPath"
 FunctionEnd
 
 ; ============================================================================
