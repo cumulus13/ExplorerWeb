@@ -1,0 +1,108 @@
+name: Build & Publish
+on:
+  push:
+    branches: [ master ]
+    tags: [ 'v*.*.*' ]  
+  pull_request:
+    branches: [ master ]
+permissions:
+  contents: write
+  packages: write
+jobs:
+  build:
+    name: Build Windows x64
+    runs-on: windows-latest
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: ⚙️ Setup .NET 8 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      
+      - name: 🧪 Restore dependencies
+        run: dotnet restore
+      
+      # VERSION 1: Single File (self-contained, single exe)
+      - name: 🔨 Build & Publish (Single File)
+        run: |
+          dotnet publish ExplorerWeb.csproj `
+            -c Release `
+            -r win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -o ./publish/single-file
+      
+      # VERSION 2: Framework Dependent (smaller, needs .NET runtime)
+      - name: 🔨 Build & Publish (Framework Dependent)
+        run: |
+          dotnet publish ExplorerWeb.csproj `
+            -c Release `
+            -r win-x64 `
+            --self-contained false `
+            -o ./publish/framework-dependent
+      
+      # Install NSIS
+      - name: 📦 Install NSIS
+        run: |
+          choco install nsis -y
+          
+      # Build NSIS Installer
+      - name: 🔨 Build NSIS Installer
+        run: |
+          & "C:\Program Files (x86)\NSIS\makensis.exe" /V4 ExplorerWeb.nsi
+      
+      - name: 📦 Zip Single File Version
+        run: |
+          Compress-Archive -Path ./publish/single-file/* -DestinationPath ./ExplorerWeb-SingleFile-win-x64.zip
+      
+      - name: 📦 Zip Framework Dependent Version
+        run: |
+          Compress-Archive -Path ./publish/framework-dependent/* -DestinationPath ./ExplorerWeb-FrameworkDependent-win-x64.zip
+      
+      - name: 📤 Upload Single File artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ExplorerWeb-SingleFile-win-x64
+          path: ./publish/single-file/
+      
+      - name: 📤 Upload Framework Dependent artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ExplorerWeb-FrameworkDependent-win-x64
+          path: ./publish/framework-dependent/
+      
+      - name: 📤 Upload NSIS Installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ExplorerWeb-Setup
+          path: ./ExplorerWeb-Setup-*.exe
+      
+      - name: 🚀 Create Release (if tagged)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ./ExplorerWeb-SingleFile-win-x64.zip
+            ./ExplorerWeb-FrameworkDependent-win-x64.zip
+            ./ExplorerWeb-Setup-*.exe
+            ./ExplorerWeb-Setup.exe
+          generate_release_notes: true
+          body: |
+            ## 📦 Download Options
+            
+            **ExplorerWeb-SingleFile-win-x64.zip** (Recommended)
+            - ✅ Single .exe file (~50-100 MB)
+            - ✅ No .NET runtime needed
+            - ✅ Just extract and run
+            
+            **ExplorerWeb-FrameworkDependent-win-x64.zip** (Smaller)
+            - ✅ Smaller size (~0.5-2 MB)
+            - ⚠️ Requires .NET 8 Runtime installed
+            - 📥 [Download .NET 8 Runtime x64](https://download.visualstudio.microsoft.com/download/pr/836cce68-d7d4-4027-955a-bab6d921d68c/24ec3a2df6785b128a9bbde2faeeed1e/dotnet-runtime-8.0.3-win-x64.exe)
+            - 📥 [Download .NET 8 Runtime x86](https://download.visualstudio.microsoft.com/download/pr/f0a786df-9956-481b-b5f3-b054b2edd294/af3c7af3d4444ace418c6f73b7264ea6/dotnet-runtime-8.0.3-win-x86.exe)
+            - 📥 [Download .NET 8 Runtime Arm64](https://download.visualstudio.microsoft.com/download/pr/396e641a-fb6a-4e1f-9028-1e1274f375e9/c4a22ce780b33120f118088ee448c318/dotnet-runtime-8.0.3-win-arm64.exe)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

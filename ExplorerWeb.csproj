@@ -6,5 +6,13 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>ExplorerWeb</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  <Version>1.0.0</Version></PropertyGroup>
+    <Version>1.0.1</Version></PropertyGroup>
+    <Platforms>x64</Platforms>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+    <AssemblyName>ExplorerWeb</AssemblyName>
+    <Authors>Hadi Cahyadi</Authors>
+    <Company>cumulus13</Company>
+    <Product>Explorer On Web</Product>
+    <Description>A full-featured web File Explorer for Windows — browse, manage, copy, rename, delete, and preview files in your browser.</Description>
+    <Copyright>Copyright © 2025</Copyright>
 </Project>
