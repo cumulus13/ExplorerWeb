@@ -2,7 +2,7 @@
 ; Author: Hadi Cahyadi <cumulus13@gmail.com>
 
 !define APP_NAME "ExplorerWeb"
-!define APP_VERSION "1.0.1"
+!define APP_VERSION "1.0.2"
 !define APP_PUBLISHER "Hadi Cahyadi"
 !define APP_URL "https://github.com/cumulus13/ExplorerWeb"
 !define DOTNET_VERSION "8.0"

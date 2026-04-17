@@ -15,4 +15,5 @@
     <Product>Explorer On Web</Product>
     <Description>A full-featured web File Explorer for Windows — browse, manage, copy, rename, delete, and preview files in your browser.</Description>
     <Copyright>Copyright © 2025</Copyright>
+  </PropertyGroup>
 </Project>
