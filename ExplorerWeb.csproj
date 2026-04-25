@@ -1,19 +1,7 @@
-<?xml version='1.0' encoding='utf-8'?>
-<Project Sdk="Microsoft.NET.Sdk.Web">
+<?xml version="1.0" encoding="UTF-8"?>
+<Project>
   <PropertyGroup>
-    <TargetFramework>net8.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>ExplorerWeb</RootNamespace>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Version>1.0.4</Version>
-    <Platforms>x64</Platforms>
-    <ApplicationIcon>app.ico</ApplicationIcon>
-    <AssemblyName>ExplorerWeb</AssemblyName>
-    <Authors>Hadi Cahyadi</Authors>
-    <Company>cumulus13</Company>
-    <Product>Explorer On Web</Product>
+    <Version>1.0.5</Version>
     <Description>A full-featured web File Explorer for Windows — browse, manage, copy, rename, delete, and preview files in your browser.</Description>
-    <Copyright>Copyright © 2025</Copyright>
   </PropertyGroup>
 </Project>

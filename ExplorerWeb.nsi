@@ -2,7 +2,7 @@
 ; Author: Hadi Cahyadi <cumulus13@gmail.com>
 
 !define APP_NAME "ExplorerWeb"
-!define APP_VERSION "1.0.4"
+!define APP_VERSION "1.1.0"
 !define APP_PUBLISHER "Hadi Cahyadi"
 !define APP_URL "https://github.com/cumulus13/ExplorerWeb"
 !define DOTNET_VERSION "8.0"
@@ -31,7 +31,7 @@ RequestExecutionLevel admin
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 !define MUI_FINISHPAGE_RUN "$INSTDIR\ExplorerWeb.exe"
-!define MUI_FINISHPAGE_RUN_TEXT "Launch ${APP_NAME}"
+!define MUI_FINISHPAGE_RUN_TEXT "Launch ${APP_NAME} in the system tray"
 !insertmacro MUI_PAGE_FINISH
 
 !insertmacro MUI_UNPAGE_CONFIRM
@@ -156,6 +156,7 @@ Section "Install" SecInstall
   ; Create shortcuts
   CreateDirectory "$SMPROGRAMS\${APP_PUBLISHER}"
   CreateShortcut "$SMPROGRAMS\${APP_PUBLISHER}\${APP_NAME}.lnk" "$INSTDIR\ExplorerWeb.exe"
+  CreateShortcut "$SMPROGRAMS\${APP_PUBLISHER}\Uninstall ${APP_NAME}.lnk" "$INSTDIR\Uninstall.exe"
   CreateShortcut "$DESKTOP\${APP_NAME}.lnk" "$INSTDIR\ExplorerWeb.exe"
   
   ; Write uninstaller
@@ -188,14 +189,11 @@ Section "Uninstall"
   Sleep 500
   
   ; Remove files
-  Delete "$INSTDIR\ExplorerWeb.exe"
-  Delete "$INSTDIR\*.dll"
-  Delete "$INSTDIR\*.json"
-  Delete "$INSTDIR\Uninstall.exe"
-  RMDir "$INSTDIR"
+  RMDir /r "$INSTDIR"
   
   ; Remove shortcuts
   Delete "$SMPROGRAMS\${APP_PUBLISHER}\${APP_NAME}.lnk"
+  Delete "$SMPROGRAMS\${APP_PUBLISHER}\Uninstall ${APP_NAME}.lnk"
   RMDir "$SMPROGRAMS\${APP_PUBLISHER}"
   Delete "$DESKTOP\${APP_NAME}.lnk"
   

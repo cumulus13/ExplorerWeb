@@ -1,0 +1,9 @@
+{
+  "Url": "http://127.0.0.1:5054",
+  "StartServerOnLaunch": true,
+  "OpenBrowserOnLaunch": false,
+  "NotificationsEnabled": true,
+  "IconsFolder": "icons",
+  "TrayIconFile": "tray.ico",
+  "NotificationIconFile": "notify.ico"
+}

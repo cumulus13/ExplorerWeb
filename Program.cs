@@ -1,20 +1,38 @@
+using ExplorerWeb.Tray;
 using ExplorerWeb.Services;
 
-var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddControllers();
-builder.Services.AddSingleton<FileSystemService>();
+namespace ExplorerWeb;
 
-var app = builder.Build();
-app.UseDefaultFiles();
-app.UseStaticFiles();
-app.MapControllers();
-
-var url = "http://localhost:5054";
-app.Lifetime.ApplicationStarted.Register(() =>
+internal static class Program
 {
-    try { System.Diagnostics.Process.Start(
-        new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true }); }
-    catch { }
-});
+    [STAThread]
+    private static void Main(string[] args)
+    {
+        using var mutex = new Mutex(true, "ExplorerWeb.Tray.Singleton", out var createdNew);
+        if (!createdNew)
+        {
+            TryOpenExistingInstance();
+            return;
+        }
 
-app.Run(url);
+        ApplicationConfiguration.Initialize();
+        using var context = new ExplorerTrayApplicationContext(args);
+        Application.Run(context);
+        GC.KeepAlive(mutex);
+    }
+
+    private static void TryOpenExistingInstance()
+    {
+        try
+        {
+            var runtimeConfig = new RuntimeConfigService();
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(runtimeConfig.Config.Url)
+            {
+                UseShellExecute = true
+            });
+        }
+        catch
+        {
+        }
+    }
+}

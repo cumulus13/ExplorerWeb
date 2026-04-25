@@ -17,6 +17,7 @@ __pycache__/
 *.log
 bin/
 obj/
+publish/
 
 # Added entries (1 items)
 *sublime*
